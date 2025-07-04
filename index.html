@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Balance RLM (RanchersLand – WAX)</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 600px; margin: auto; }
+    input, button { padding: 0.5rem; font-size: 1rem; margin-top: 0.5rem; }
+    pre { background: #f9f9f9; padding: 1rem; border-radius: 5px; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h2>Consultar Balance RLM (RanchersLand – WAX)</h2>
+  <input id="account" placeholder="usuario.wam (ej: 2j5uw.wam)" />
+  <button id="btn">Consultar</button>
+  <pre id="out">Ingresa una cuenta y presiona "Consultar"</pre>
+
+  <script>
+    document.getElementById('btn').addEventListener('click', async () => {
+      const acc = document.getElementById('account').value.trim();
+      const out = document.getElementById('out');
+      const btn = document.getElementById('btn');
+
+      if (!/^[a-z1-5.]{1,12}\.wam$/.test(acc)) {
+        out.textContent = '❌ Cuenta inválida. Debe terminar en .wam';
+        return;
+      }
+
+      out.textContent = '⏳ Consultando balance RLM...';
+      btn.disabled = true;
+      btn.textContent = 'Consultando...';
+
+      const endpoints = [
+        'https://wax.pink.gg',
+        
+        
+        
+      ];
+
+      let success = false;
+
+      for (const endpoint of endpoints) {
+        try {
+          const res = await fetch(`https://wax.pink.gg/v1/chain/get_table_rows`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              json: true,
+              code: 'token.ranch',
+              scope: acc,
+              table: 'accounts',
+              limit: 1
+            })
+          });
+
+          const data = await res.json();
+          console.log('Desde:', endpoint, data);
+
+          if (data.rows?.length) {
+            out.textContent = `✅ ${acc} tiene: ${data.rows[0].balance} RLM`;
+          } else {
+            out.textContent = `ℹ️ ${acc} no tiene RLM o no existe.`;
+          }
+
+          success = true;
+          break;
+        } catch (e) {
+          console.warn(`Error al consultar en ${endpoint}:`, e.message);
+        }
+      }
+
+      if (!success) {
+        out.textContent = '❌ Error: No se pudo consultar ningún nodo WAX.';
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Consultar';
+    });
+  </script>
+</body>
+</html>
