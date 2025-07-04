@@ -24,12 +24,13 @@
     <h2>🔗 NFTs Equipados</h2><ul id="nft-list" class="nft-list"></ul>
   </section>
 <script>
- const tokenIcons = {
-  "RANCH": "https://ipfs.io/ipfs/QmYdbW4tyKZ9K84MNX1csdQ3bcD1S7KyN3G5HSMdGHZaXU",
-  "FARM":  "https://ipfs.io/ipfs/QmRYrB7XkfoRDa88VGZnGsbkEWB8xUjLfqR5z9KRjN6MmT",
-  "TOOL":  "https://ipfs.io/ipfs/QmaN7X9Rro6KRdzTZLRuHv2ZJuAuDYob1mmpy4WGbEnpRt",
-  "RCOIN": "https://ipfs.io/ipfs/QmUdZHQvhEAqdzqYFuakPGhzNz5Qyi1YK3FG3pkgbb7PKH"
+const tokenIcons = {
+  "RANCH": "https://raw.githubusercontent.com/wax-official/media-assets/main/token-icons/ranch.png",
+  "FARM":  "https://raw.githubusercontent.com/wax-official/media-assets/main/token-icons/farm.png",
+  "TOOL":  "https://raw.githubusercontent.com/wax-official/media-assets/main/token-icons/tool.png",
+  "RCOIN": "https://raw.githubusercontent.com/wax-official/media-assets/main/token-icons/rcoin.png"
 };
+
 
   document.getElementById('btn').addEventListener('click', async () => {
     const acc = document.getElementById('account').value.trim();
