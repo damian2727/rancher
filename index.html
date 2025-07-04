@@ -68,7 +68,7 @@
         msg.textContent = "⏳ Cargando " + row.staked_nft.length + " NFT(s)...";
         for (const id of row.staked_nft) {
           try {
-            let r2 = await fetch(`https://wax.api.atomicassets.io/atomicassets/v1/assets/${id}`);
+           let r2 = await fetch(`https://aa.wax.blacklusion.io/atomicassets/v1/assets/${id}`);
             let js = await r2.json();
             const asset = js.data;
             const img = asset.data.img || asset.mutable_data.img || '';
