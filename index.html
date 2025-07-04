@@ -148,6 +148,7 @@
 
         // NFTs
         if (Array.isArray(row.staked_nft) && row.staked_nft.length) {
+          console.log('NFTs equipados:', row.staked_nft);
           for (const item of row.staked_nft) {
             const li = document.createElement('li');
             // Se asume que item contiene { img: url, name: string }
