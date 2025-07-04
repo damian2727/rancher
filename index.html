@@ -15,52 +15,50 @@
   <pre id="out">Ingresa una cuenta y presiona "Consultar"</pre>
 
   <script>
-    document.getElementById('btn').addEventListener('click', async () => {
-      const acc = document.getElementById('account').value.trim();
-      const out = document.getElementById('out');
-      const btn = document.getElementById('btn');
+document.getElementById('btn').addEventListener('click', async () => {
+  const acc = document.getElementById('account').value.trim();
+  const out = document.getElementById('out');
+  const btn = document.getElementById('btn');
 
-      if (!/^[a-z1-5.]{1,12}\.wam$/.test(acc)) {
-        out.textContent = '❌ Cuenta inválida. Debe terminar en .wam';
-        return;
-      }
+  if (!/^[a-z1-5.]{1,12}\.wam$/.test(acc)) {
+    out.textContent = '❌ Cuenta inválida. Debe terminar en .wam';
+    return;
+  }
 
-      out.textContent = '⏳ Consultando tokens...';
-      btn.disabled = true;
-      btn.textContent = 'Consultando...';
+  out.textContent = '⏳ Buscando tokens en ranchersland...';
+  btn.disabled = true;
+  btn.textContent = 'Consultando...';
 
-      const endpoint = 'https://wax.pink.gg';
-
-      try {
-        const res = await fetch(`${endpoint}/v1/chain/get_table_rows`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            json: true,
-            code: 'ranchersland',
-            scope: acc,
-            table: 'accounts',
-            limit: 100
-          })
-        });
-
-        if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
-
-        const data = await res.json();
-        if (data.rows && data.rows.length > 0) {
-          const balances = data.rows.map(row => row.balance).join('\n');
-          out.textContent = `✅ ${acc} tiene los siguientes tokens:\n\n${balances}`;
-        } else {
-          out.textContent = `ℹ️ ${acc} no tiene tokens registrados en ranchersland.`;
-        }
-      } catch (e) {
-        console.error(e);
-        out.textContent = '❌ Error al consultar los tokens: ' + e.message;
-      }
-
-      btn.disabled = false;
-      btn.textContent = 'Consultar';
+  try {
+    const res = await fetch('https://wax.pink.gg/v1/chain/get_table_rows', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        json: true,
+        code: 'ranchersland',
+        scope: 'ranchersland',  // <-- Nota: scope fijo
+        table: 'accounts',
+        limit: 1000
+      })
     });
-  </script>
+
+    const data = await res.json();
+    const tokens = data.rows.filter(row => row.owner === acc);
+
+    if (tokens.length > 0) {
+      const balances = tokens.map(t => `${t.balance}`).join('\n');
+      out.textContent = `✅ ${acc} tiene los siguientes tokens:\n\n${balances}`;
+    } else {
+      out.textContent = `ℹ️ ${acc} no tiene tokens registrados en ranchersland.`;
+    }
+  } catch (e) {
+    console.error(e);
+    out.textContent = '❌ Error al consultar: ' + e.message;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Consultar';
+});
+</script>
 </body>
 </html>
