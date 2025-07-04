@@ -45,9 +45,9 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               json: true,
-              code: 'ranchersland',
+              code: 'ranchersbank',
               scope: acc,
-              table: 'test',
+              table: 'accounts',
               limit: 10
             })
           });
@@ -57,8 +57,9 @@
 
           if (data.rows?.length) {
             out.textContent = `✅ ${acc} tiene: ${data.rows[0].balance}`;
-            out.textContent = `✅ ${acc} tiene: ${data.rows[1].balance}`;
-        
+           out.textContent = `✅ ${acc} tiene: ${data.rows[1].balance}`;
+           out.textContent = `✅ ${acc} tiene: ${data.rows[2].balance}`;
+           out.textContent = `✅ ${acc} tiene: ${data.rows[3].balance}`;
               
           } else {
             out.textContent = `ℹ️ ${acc} no tiene tokens o no existe.`;
