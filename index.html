@@ -55,80 +55,71 @@
   </table>
 
   <script>
-    const tokenIcons = {
-      "FOOD": "https://i.postimg.cc/1zN1Nzbh/food.png",
-      "WOOD": "https://i.postimg.cc/wByFvqnJ/wood.png",
-      "GOLD": "https://i.postimg.cc/mkJ6FrW0/gold.png",
-      "STONE": "https://i.postimg.cc/0NCh3qdF/stone.png"
-      // Agrega más tokens si lo deseas
-    };
+  const tokenIcons = {
+    "RANCH": "https://i.postimg.cc/Y9JFyvxW/ranch.png",
+    "FARM": "https://i.postimg.cc/XqJt7nHd/farm.png",
+    "TOOL": "https://i.postimg.cc/j5cgfbmZ/tool.png",
+    "RCOIN": "https://i.postimg.cc/zGnRwTz6/rcoin.png"
+  };
 
-    document.getElementById('btn').addEventListener('click', async () => {
-      const acc = document.getElementById('account').value.trim();
-      const msg = document.getElementById('msg');
-      const table = document.getElementById('result');
-      const tbody = document.getElementById('tbody');
+  document.getElementById('btn').addEventListener('click', async () => {
+    const acc = document.getElementById('account').value.trim();
+    const msg = document.getElementById('msg');
+    const table = document.getElementById('result');
+    const tbody = document.getElementById('tbody');
 
-      table.style.display = "none";
-      tbody.innerHTML = "";
-      msg.textContent = '⏳ Consultando tokens...';
+    table.style.display = "none";
+    tbody.innerHTML = "";
 
-      if (!/^[a-z1-5.]{1,12}\.wam$/.test(acc)) {
-        msg.textContent = '❌ Cuenta inválida. Ej: tzgru.wam';
+    if (!/^[a-z1-5.]{1,12}\.wam$/.test(acc)) {
+      msg.textContent = '❌ Cuenta inválida. Ej: tzgru.wam';
+      return;
+    }
+
+    msg.textContent = '⏳ Consultando tokens...';
+
+    try {
+      const res = await fetch('https://wax.pink.gg/v1/chain/get_table_rows', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          json: true,
+          code: 'ranchersland',
+          scope: 'ranchersland',
+          table: 'accounts',
+          limit: 5000
+        })
+      });
+
+      const data = await res.json();
+      console.log('Respuesta:', data);
+
+      const userRow = data.rows.find(row => row.account === acc);
+
+      if (!userRow || !userRow.balances || userRow.balances.length === 0) {
+        msg.textContent = `ℹ️ ${acc} no tiene balances registrados en RanchersLand.`;
         return;
       }
 
-      try {
-        const res = await fetch('https://wax.pink.gg/v1/chain/get_table_rows', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            json: true,
-            code: 'ranchersland',
-            scope: 'ranchersland',
-            table: 'accounts',
-            limit: 2000
-          })
-        });
-        const data = await res.json();
-        console.log('Respuesta completa:', data);
-        console.log('Ejemplo de fila:', data.rows[0]);
-
-        if (!Array.isArray(data.rows)) {
-          msg.textContent = '❌ La respuesta no contiene rows.';
-          return;
-        }
-
-        const tokens = data.rows.filter(row =>
-          row.owner === acc ||
-          row.account === acc ||
-          row.user === acc ||
-          row.scope === acc
-        );
-        console.log('Tokens filtrados:', tokens);
-
-        if (tokens.length === 0) {
-          msg.textContent = `ℹ️ ${acc} no tiene tokens registrados (o campo incorrecto).`;
-          return;
-        }
-
-        tokens.forEach(row => {
-          const [amount, symbol] = (row.balance || '').split(' ');
-          const icon = tokenIcons[symbol];
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td><img src="${icon}" alt="${symbol}">${symbol}</td><td>${amount || '?'}</td>`;
-          tbody.appendChild(tr);
-        });
-
-        msg.textContent = `✅ ${acc} tiene ${tokens.length} token(s):`;
-        table.style.display = "table";
-
-      } catch (e) {
-        console.error(e);
-        msg.textContent = '❌ Error al conectar: ' + e.message;
+      // Mostrar cada token
+      for (const balance of userRow.balances) {
+        const [amount, symbol] = balance.split(' ');
+        const icon = tokenIcons[symbol] || "https://i.postimg.cc/wTPccFbf/question.png";
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><img src="${icon}" alt="${symbol}">${symbol}</td><td>${amount}</td>`;
+        tbody.appendChild(tr);
       }
-    });
-  </script>
+
+      msg.textContent = `✅ ${acc} tiene ${userRow.balances.length} token(s):`;
+      table.style.display = "table";
+
+    } catch (e) {
+      console.error(e);
+      msg.textContent = '❌ Error al consultar: ' + e.message;
+    }
+  });
+</script>
+
 </body>
 </html>
 
