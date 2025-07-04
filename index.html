@@ -55,7 +55,8 @@ const tokenIcons = {
       if (!row) return msg.textContent = "❌ Perfil no encontrado.";
 
       // Mostrar tokens
-     const [amount, sym] = b.split(' ');
+      row.balances?.forEach(b => {
+        const [amount, sym] = b.split(' ');
 const icon = tokenIcons[sym] || 'https://via.placeholder.com/24';
 const tr = document.createElement('tr');
 tr.innerHTML = `
@@ -65,6 +66,9 @@ tr.innerHTML = `
   </td>
   <td>${amount}</td>
 `;
+
+        tbody.appendChild(tr);
+      });
       secTokens.style.display = row.balances.length? 'block':'none';
 
       // Mostrar NFTs equipados
