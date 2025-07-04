@@ -92,6 +92,7 @@
         });
         const data = await res.json();
         console.log('Respuesta completa:', data);
+        console.log('Ejemplo de fila:', data.rows[0]);
 
         if (!Array.isArray(data.rows)) {
           msg.textContent = '❌ La respuesta no contiene rows.';
