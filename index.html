@@ -56,7 +56,7 @@
           console.log('Desde:', endpoint, data);
 
           if (data.rows?.length) {
-            out.textContent = `✅ ${acc} tiene: ${data.rows[0].balances} RLM`;
+            out.textContent = `✅ ${acc} tiene: ${data.rows[0].balance} RLM`;
               
           } else {
             out.textContent = `ℹ️ ${acc} no tiene RLM o no existe.`;
