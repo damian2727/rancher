@@ -2,124 +2,172 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Tokens de RanchersLand</title>
+  <title>Perfil de RanchersLand (.wam)</title>
   <style>
     body {
       font-family: sans-serif;
-      padding: 2rem;
-      max-width: 600px;
+      max-width: 760px;
       margin: auto;
       background: #f4f4f4;
+      padding: 2rem;
     }
     input, button {
       padding: 0.5rem;
       font-size: 1rem;
-      margin-top: 0.5rem;
     }
+    section {
+      background: #fff;
+      padding: 1rem;
+      margin-top: 1.5rem;
+      border-radius: 8px;
+    }
+    h2 { margin-top: 0; }
     table {
       width: 100%;
-      margin-top: 1rem;
       border-collapse: collapse;
-      background: #fff;
+      margin-top: .5rem;
     }
     th, td {
-      padding: 0.75rem;
-      text-align: left;
+      padding: .6rem;
       border-bottom: 1px solid #ddd;
+      text-align: left;
     }
     th {
-      background-color: #222;
-      color: white;
+      background: #222;
+      color: #fff;
     }
-    td img {
+    td img.token {
       height: 24px;
       vertical-align: middle;
-      margin-right: 0.5rem;
+      margin-right: .4rem;
     }
-    #msg {
-      margin-top: 1rem;
-      font-size: 1.1rem;
+    ul.nft-list {
+      list-style: none;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+      gap: 1rem;
     }
+    ul.nft-list li {
+      background: #f9f9f9;
+      padding: .5rem;
+      border-radius: 4px;
+      text-align: center;
+    }
+    ul.nft-list img {
+      max-width: 100%;
+      border-radius: 4px;
+    }
+    #msg { margin-top: 1rem; font-size: 1.1rem; }
   </style>
 </head>
 <body>
-  <h2>Consultar tokens de RanchersLand</h2>
-  <input id="account" placeholder="Ingresa tu cuenta .wam (ej: tzgru.wam)" />
-  <button id="btn">Consultar</button>
-  <div id="msg">Ingresa tu cuenta y presiona "Consultar"</div>
-  <table id="result" style="display:none">
-    <thead>
-      <tr><th>Token</th><th>Balance</th></tr>
-    </thead>
-    <tbody id="tbody"></tbody>
-  </table>
+  <h1>Perfil RanchersLand</h1>
+  <label>
+    Cuenta WAX (.wam):
+    <input id="account" placeholder="ej: tzgru.wam" />
+  </label>
+  <button id="btn">Consultar Perfil</button>
+  <div id="msg">Ingresa tu cuenta y presiona "Consultar perfil"</div>
+
+  <!-- Tokens -->
+  <section id="tokens" style="display:none;">
+    <h2>💰 Tokens</h2>
+    <table>
+      <thead><tr><th>Token</th><th>Balance</th></tr></thead>
+      <tbody id="tbody-tokens"></tbody>
+    </table>
+  </section>
+
+  <!-- NFTs -->
+  <section id="nfts" style="display:none;">
+    <h2>🔗 NFTs Equipados</h2>
+    <ul class="nft-list" id="nft-list"></ul>
+  </section>
 
   <script>
-  const tokenIcons = {
-    "RANCH": "https://i.postimg.cc/Y9JFyvxW/ranch.png",
-    "FARM": "https://i.postimg.cc/XqJt7nHd/farm.png",
-    "TOOL": "https://i.postimg.cc/j5cgfbmZ/tool.png",
-    "RCOIN": "https://i.postimg.cc/zGnRwTz6/rcoin.png"
-  };
+    const tokenIcons = {
+      "RANCH": "https://i.postimg.cc/Y9JFyvxW/ranch.png",
+      "FARM": "https://i.postimg.cc/XqJt7nHd/farm.png",
+      "TOOL": "https://i.postimg.cc/j5cgfbmZ/tool.png",
+      "RCOIN": "https://i.postimg.cc/zGnRwTz6/rcoin.png"
+    };
 
-  document.getElementById('btn').addEventListener('click', async () => {
-    const acc = document.getElementById('account').value.trim();
-    const msg = document.getElementById('msg');
-    const table = document.getElementById('result');
-    const tbody = document.getElementById('tbody');
+    document.getElementById('btn').addEventListener('click', async () => {
+      const acc = document.getElementById('account').value.trim();
+      const msg = document.getElementById('msg');
+      const secTokens = document.getElementById('tokens');
+      const secNFTs = document.getElementById('nfts');
+      const tbody = document.getElementById('tbody-tokens');
+      const nftList = document.getElementById('nft-list');
 
-    table.style.display = "none";
-    tbody.innerHTML = "";
+      secTokens.style.display = "none";
+      secNFTs.style.display = "none";
+      tbody.innerHTML = "";
+      nftList.innerHTML = "";
 
-    if (!/^[a-z1-5.]{1,12}\.wam$/.test(acc)) {
-      msg.textContent = '❌ Cuenta inválida. Ej: tzgru.wam';
-      return;
-    }
-
-    msg.textContent = '⏳ Consultando tokens...';
-
-    try {
-      const res = await fetch('https://wax.pink.gg/v1/chain/get_table_rows', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          json: true,
-          code: 'ranchersland',
-          scope: 'ranchersland',
-          table: 'accounts',
-          limit: 5000
-        })
-      });
-
-      const data = await res.json();
-      console.log('Respuesta:', data);
-
-      const userRow = data.rows.find(row => row.account === acc);
-
-      if (!userRow || !userRow.balances || userRow.balances.length === 0) {
-        msg.textContent = `ℹ️ ${acc} no tiene balances registrados en RanchersLand.`;
+      if (!/^[a-z1-5.]{1,12}\.wam$/.test(acc)) {
+        msg.textContent = '❌ Cuenta inválida. Debe terminar en .wam';
         return;
       }
 
-      // Mostrar cada token
-      for (const balance of userRow.balances) {
-        const [amount, symbol] = balance.split(' ');
-        const icon = tokenIcons[symbol] || "https://i.postimg.cc/wTPccFbf/question.png";
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td><img src="${icon}" alt="${symbol}">${symbol}</td><td>${amount}</td>`;
-        tbody.appendChild(tr);
+      msg.textContent = '⏳ Cargando perfil...';
+
+      try {
+        const res = await fetch('https://wax.pink.gg/v1/chain/get_table_rows', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            json: true,
+            code: 'ranchersland',
+            scope: 'ranchersland',
+            table: 'accounts',
+            limit: 5000
+          })
+        });
+        const data = await res.json();
+        console.log('Respuesta:', data);
+
+        const row = data.rows.find(r => r.account === acc);
+        if (!row) {
+          msg.textContent = `❌ No se encontró perfil para ${acc}`;
+          return;
+        }
+
+        // Tokens
+        if (Array.isArray(row.balances) && row.balances.length) {
+          for (const b of row.balances) {
+            const [amount, symbol] = b.split(' ');
+            const icon = tokenIcons[symbol] || 'https://i.postimg.cc/wTPccFbf/question.png';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td><img src="${icon}" class="token">${symbol}</td><td>${amount}</td>`;
+            tbody.appendChild(tr);
+          }
+          secTokens.style.display = 'block';
+        }
+
+        // NFTs
+        if (Array.isArray(row.staked_nft) && row.staked_nft.length) {
+          for (const item of row.staked_nft) {
+            const li = document.createElement('li');
+            // Se asume que item contiene { img: url, name: string }
+            const img = document.createElement('img');
+            img.src = item.img;
+            img.alt = item.name;
+            const p = document.createElement('p');
+            p.textContent = item.name;
+            li.append(img, p);
+            nftList.append(li);
+          }
+          secNFTs.style.display = 'block';
+        }
+
+        msg.textContent = `✅ Perfil cargado para ${acc}`;
+      } catch(e) {
+        console.error(e);
+        msg.textContent = '❌ Error: ' + e.message;
       }
-
-      msg.textContent = `✅ ${acc} tiene ${userRow.balances.length} token(s):`;
-      table.style.display = "table";
-
-    } catch (e) {
-      console.error(e);
-      msg.textContent = '❌ Error al consultar: ' + e.message;
-    }
-  });
-</script>
-
+    });
+  </script>
 </body>
 </html>
-
