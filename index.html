@@ -113,7 +113,7 @@
 
         tokens.forEach(row => {
           const [amount, symbol] = (row.balance || '').split(' ');
-          const icon = tokenIcons[symbol] || "https://i.postimg.cc/wTPccFbf/question.png";
+          const icon = tokenIcons[symbol];
           const tr = document.createElement('tr');
           tr.innerHTML = `<td><img src="${icon}" alt="${symbol}">${symbol}</td><td>${amount || '?'}</td>`;
           tbody.appendChild(tr);
