@@ -2,173 +2,92 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Perfil de RanchersLand (.wam)</title>
+  <title>Perfil RanchersLand con NFTs</title>
   <style>
-    body {
-      font-family: sans-serif;
-      max-width: 760px;
-      margin: auto;
-      background: #f4f4f4;
-      padding: 2rem;
-    }
-    input, button {
-      padding: 0.5rem;
-      font-size: 1rem;
-    }
-    section {
-      background: #fff;
-      padding: 1rem;
-      margin-top: 1.5rem;
-      border-radius: 8px;
-    }
-    h2 { margin-top: 0; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: .5rem;
-    }
-    th, td {
-      padding: .6rem;
-      border-bottom: 1px solid #ddd;
-      text-align: left;
-    }
-    th {
-      background: #222;
-      color: #fff;
-    }
-    td img.token {
-      height: 24px;
-      vertical-align: middle;
-      margin-right: .4rem;
-    }
-    ul.nft-list {
-      list-style: none;
-      padding: 0;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
-      gap: 1rem;
-    }
-    ul.nft-list li {
-      background: #f9f9f9;
-      padding: .5rem;
-      border-radius: 4px;
-      text-align: center;
-    }
-    ul.nft-list img {
-      max-width: 100%;
-      border-radius: 4px;
-    }
-    #msg { margin-top: 1rem; font-size: 1.1rem; }
+    /* Mantengo estilos previos */
+    body { font-family:sans-serif; max-width:800px; margin:auto; padding:2rem; background:#f4f4f4; }
+    input, button { padding:0.5rem; font-size:1rem; }
+    section { background:#fff; padding:1rem; margin-top:1rem; border-radius:8px; }
+    ul.nft-list { list-style:none; padding:0; display:grid; grid-template-columns:repeat(auto-fill,128px); gap:1rem; }
+    ul.nft-list li { text-align:center; }
+    ul.nft-list img { width:100%; border-radius:4px; }
   </style>
 </head>
 <body>
-  <h1>Perfil RanchersLand</h1>
-  <label>
-    Cuenta WAX (.wam):
-    <input id="account" placeholder="ej: tzgru.wam" />
-  </label>
-  <button id="btn">Consultar Perfil</button>
-  <div id="msg">Ingresa tu cuenta y presiona "Consultar perfil"</div>
-
-  <!-- Tokens -->
-  <section id="tokens" style="display:none;">
-    <h2>💰 Tokens</h2>
-    <table>
-      <thead><tr><th>Token</th><th>Balance</th></tr></thead>
-      <tbody id="tbody-tokens"></tbody>
-    </table>
+  <h1>Perfil RanchersLand / WAX</h1>
+  <input id="account" placeholder="ej: tzgru.wam" /><button id="btn">Consultar Perfil</button>
+  <div id="msg">Ingresa tu cuenta .wam y presiona Consultar</div>
+  <section id="tokens" style="display:none">
+    <h2>💰 Tokens</h2><table><thead><tr><th>Token</th><th>Saldo</th></tr></thead><tbody id="tbody-tokens"></tbody></table>
   </section>
-
-  <!-- NFTs -->
-  <section id="nfts" style="display:none;">
-    <h2>🔗 NFTs Equipados</h2>
-    <ul class="nft-list" id="nft-list"></ul>
+  <section id="nfts" style="display:none">
+    <h2>🔗 NFTs Equipados</h2><ul id="nft-list" class="nft-list"></ul>
   </section>
+<script>
+  const tokenIcons = {
+    "RANCH":"https://i.postimg.cc/Y9JFyvxW/ranch.png",
+    "FARM":"https://i.postimg.cc/XqJt7nHd/farm.png",
+    "TOOL":"https://i.postimg.cc/j5cgfbmZ/tool.png",
+    "RCOIN":"https://i.postimg.cc/zGnRwTz6/rcoin.png"
+  };
 
-  <script>
-    const tokenIcons = {
-      "RANCH": "https://i.postimg.cc/Y9JFyvxW/ranch.png",
-      "FARM": "https://i.postimg.cc/XqJt7nHd/farm.png",
-      "TOOL": "https://i.postimg.cc/j5cgfbmZ/tool.png",
-      "RCOIN": "https://i.postimg.cc/zGnRwTz6/rcoin.png"
-    };
+  document.getElementById('btn').addEventListener('click', async () => {
+    const acc = document.getElementById('account').value.trim();
+    const msg = document.getElementById('msg');
+    const secTokens = document.getElementById('tokens');
+    const secNFTs = document.getElementById('nfts');
+    const tbody = document.getElementById('tbody-tokens');
+    const nftList = document.getElementById('nft-list');
 
-    document.getElementById('btn').addEventListener('click', async () => {
-      const acc = document.getElementById('account').value.trim();
-      const msg = document.getElementById('msg');
-      const secTokens = document.getElementById('tokens');
-      const secNFTs = document.getElementById('nfts');
-      const tbody = document.getElementById('tbody-tokens');
-      const nftList = document.getElementById('nft-list');
+    secTokens.style.display = secNFTs.style.display = "none";
+    tbody.innerHTML = nftList.innerHTML = "";
+    if (!/^[a-z1-5.]{1,12}\.wam$/.test(acc)) { msg.textContent = "❌ Cuenta inválida"; return; }
+    msg.textContent = "⏳ Consultando perfil...";
 
-      secTokens.style.display = "none";
-      secNFTs.style.display = "none";
-      tbody.innerHTML = "";
-      nftList.innerHTML = "";
+    try {
+      let res = await fetch('https://wax.pink.gg/v1/chain/get_table_rows', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({json:true, code:'ranchersland', scope:'ranchersland', table:'accounts', limit:5000})
+      });
+      const data = await res.json();
+      const row = data.rows.find(r => r.account === acc);
+      if (!row) return msg.textContent = "❌ Perfil no encontrado.";
 
-      if (!/^[a-z1-5.]{1,12}\.wam$/.test(acc)) {
-        msg.textContent = '❌ Cuenta inválida. Debe terminar en .wam';
-        return;
-      }
+      // Mostrar tokens
+      row.balances?.forEach(b => {
+        const [amount,sym] = b.split(' ');
+        const icon = tokenIcons[sym] || '';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><img src="${icon}" height=24>${sym}</td><td>${amount}</td>`;
+        tbody.appendChild(tr);
+      });
+      secTokens.style.display = row.balances.length? 'block':'none';
 
-      msg.textContent = '⏳ Cargando perfil...';
-
-      try {
-        const res = await fetch('https://wax.pink.gg/v1/chain/get_table_rows', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            json: true,
-            code: 'ranchersland',
-            scope: 'ranchersland',
-            table: 'accounts',
-            limit: 5000
-          })
-        });
-        const data = await res.json();
-        console.log('Respuesta:', data);
-
-        const row = data.rows.find(r => r.account === acc);
-        if (!row) {
-          msg.textContent = `❌ No se encontró perfil para ${acc}`;
-          return;
-        }
-
-        // Tokens
-        if (Array.isArray(row.balances) && row.balances.length) {
-          for (const b of row.balances) {
-            const [amount, symbol] = b.split(' ');
-            const icon = tokenIcons[symbol] || 'https://i.postimg.cc/wTPccFbf/question.png';
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td><img src="${icon}" class="token">${symbol}</td><td>${amount}</td>`;
-            tbody.appendChild(tr);
-          }
-          secTokens.style.display = 'block';
-        }
-
-        // NFTs
-        if (Array.isArray(row.staked_nft) && row.staked_nft.length) {
-          console.log('NFTs equipados:', row.staked_nft);
-          for (const item of row.staked_nft) {
+      // Mostrar NFTs equipados
+      if (Array.isArray(row.staked_nft) && row.staked_nft.length) {
+        msg.textContent = "⏳ Cargando " + row.staked_nft.length + " NFT(s)...";
+        for (const id of row.staked_nft) {
+          try {
+            let r2 = await fetch(`https://wax.api.atomicassets.io/atomicassets/v1/assets/${id}`);
+            let js = await r2.json();
+            const asset = js.data;
+            const img = asset.data.img || asset.mutable_data.img || '';
+            const name = asset.name || '';
             const li = document.createElement('li');
-            // Se asume que item contiene { img: url, name: string }
-            const img = document.createElement('img');
-            img.src = item.img;
-            img.alt = item.name;
-            const p = document.createElement('p');
-            p.textContent = item.name;
-            li.append(img, p);
-            nftList.append(li);
-          }
-          secNFTs.style.display = 'block';
+            li.innerHTML = `<img src="${img}" alt="${name}"/><p>${name}</p>`;
+            nftList.appendChild(li);
+          } catch(e){ console.warn("NFT err:", id, e); }
         }
-
-        msg.textContent = `✅ Perfil cargado para ${acc}`;
-      } catch(e) {
-        console.error(e);
-        msg.textContent = '❌ Error: ' + e.message;
+        secNFTs.style.display = 'block';
       }
-    });
-  </script>
+
+      msg.textContent = `✅ Perfil cargado para ${acc}`;
+
+    } catch(e) {
+      console.error(e);
+      msg.textContent = `❌ Error: ${e.message}`;
+    }
+  });
+</script>
 </body>
 </html>
