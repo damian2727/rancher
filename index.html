@@ -4,20 +4,49 @@
   <meta charset="UTF-8">
   <title>Tokens de RanchersLand</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; background: #f4f4f4; }
-    input, button { padding: 0.5rem; font-size: 1rem; margin-right: 0.5rem; }
-    table { width: 100%; margin-top: 1rem; border-collapse: collapse; background: #fff; }
-    th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd; }
-    th { background-color: #222; color: white; }
-    td img { height: 24px; vertical-align: middle; margin-right: 0.5rem; }
-    #msg { margin-top: 1rem; font-size: 1.1rem; }
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+      background: #f4f4f4;
+    }
+    input, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+    }
+    table {
+      width: 100%;
+      margin-top: 1rem;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #222;
+      color: white;
+    }
+    td img {
+      height: 24px;
+      vertical-align: middle;
+      margin-right: 0.5rem;
+    }
+    #msg {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+    }
   </style>
 </head>
 <body>
-  <h2>Consultar tokens RanchersLand</h2>
-  <input id="account" placeholder="usuario.wam (ej: 2j5uw.wam)" />
+  <h2>Consultar tokens de RanchersLand</h2>
+  <input id="account" placeholder="Ingresa tu cuenta .wam (ej: tzgru.wam)" />
   <button id="btn">Consultar</button>
-  <div id="msg">Ingresa tu cuenta .wam y presiona "Consultar"</div>
+  <div id="msg">Ingresa tu cuenta y presiona "Consultar"</div>
   <table id="result" style="display:none">
     <thead>
       <tr><th>Token</th><th>Balance</th></tr>
@@ -25,68 +54,69 @@
     <tbody id="tbody"></tbody>
   </table>
 
-<script>
-  const tokenIcons = {
-    "FOOD": "https://i.postimg.cc/1zN1Nzbh/food.png",
-    "WOOD": "https://i.postimg.cc/wByFvqnJ/wood.png",
-    "GOLD": "https://i.postimg.cc/mkJ6FrW0/gold.png",
-    "STONE": "https://i.postimg.cc/0NCh3qdF/stone.png"
-  };
+  <script>
+    const tokenIcons = {
+      "FOOD": "https://i.postimg.cc/1zN1Nzbh/food.png",
+      "WOOD": "https://i.postimg.cc/wByFvqnJ/wood.png",
+      "GOLD": "https://i.postimg.cc/mkJ6FrW0/gold.png",
+      "STONE": "https://i.postimg.cc/0NCh3qdF/stone.png"
+      // Agrega más tokens si lo deseas
+    };
 
-  document.getElementById('btn').addEventListener('click', async () => {
-    const acc = document.getElementById('account').value.trim();
-    const msg = document.getElementById('msg');
-    const table = document.getElementById('result');
-    const tbody = document.getElementById('tbody');
+    document.getElementById('btn').addEventListener('click', async () => {
+      const acc = document.getElementById('account').value.trim();
+      const msg = document.getElementById('msg');
+      const table = document.getElementById('result');
+      const tbody = document.getElementById('tbody');
 
-    table.style.display = "none";
-    tbody.innerHTML = "";
+      table.style.display = "none";
+      tbody.innerHTML = "";
 
-    if (!/^[a-z1-5.]{1,12}\.wam$/.test(acc)) {
-      msg.textContent = '❌ Cuenta inválida. Debe terminar en .wam';
-      return;
-    }
-
-    msg.textContent = '⏳ Consultando tokens desde ranchersland...';
-
-    try {
-      const res = await fetch('https://wax.pink.gg/v1/chain/get_table_rows', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          json: true,
-          code: 'ranchersland',
-          scope: 'ranchersland', // <--- scope fijo
-          table: 'accounts',
-          limit: 2000
-        })
-      });
-
-      const data = await res.json();
-      const tokens = data.rows.filter(row => row.owner === acc);
-
-      if (tokens.length === 0) {
-        msg.textContent = `ℹ️ ${acc} no tiene tokens registrados en RanchersLand.`;
+      if (!/^[a-z1-5.]{1,12}\.wam$/.test(acc)) {
+        msg.textContent = '❌ Cuenta inválida. Debe terminar en .wam';
         return;
       }
 
-      for (const row of tokens) {
-        const [amount, symbol] = row.balance.split(' ');
-        const icon = tokenIcons[symbol] || "https://i.postimg.cc/wTPccFbf/question.png";
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td><img src="${icon}" alt="${symbol}">${symbol}</td><td>${amount}</td>`;
-        tbody.appendChild(tr);
+      msg.textContent = '⏳ Consultando tokens...';
+
+      try {
+        const res = await fetch('https://wax.pink.gg/v1/chain/get_table_rows', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            json: true,
+            code: 'ranchersland',
+            scope: 'ranchersland', // scope fijo
+            table: 'accounts',
+            limit: 2000
+          })
+        });
+
+        const data = await res.json();
+        const tokens = data.rows.filter(row => row.owner === acc);
+
+        if (tokens.length === 0) {
+          msg.textContent = `ℹ️ ${acc} no tiene tokens registrados.`;
+          return;
+        }
+
+        for (const row of tokens) {
+          const [amount, symbol] = row.balance.split(' ');
+          const icon = tokenIcons[symbol] || "https://i.postimg.cc/wTPccFbf/question.png";
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td><img src="${icon}" alt="${symbol}">${symbol}</td><td>${amount}</td>`;
+          tbody.appendChild(tr);
+        }
+
+        msg.textContent = `✅ ${acc} tiene ${tokens.length} token(s):`;
+        table.style.display = "table";
+
+      } catch (e) {
+        console.error(e);
+        msg.textContent = '❌ Error al consultar: ' + e.message;
       }
-
-      msg.textContent = `✅ ${acc} tiene ${tokens.length} token(s):`;
-      table.style.display = "table";
-
-    } catch (e) {
-      console.error(e);
-      msg.textContent = '❌ Error al consultar: ' + e.message;
-    }
-  });
-</script>
-
+    });
+  </script>
 </body>
 </html>
+
