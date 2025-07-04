@@ -80,6 +80,37 @@ async function cargarNFT(asset_id) {
   }
 }
 
+// NFTs normales
+if (Array.isArray(row.staked_nft) && row.staked_nft.length) {
+  msg.textContent = `⏳ Cargando ${row.staked_nft.length} NFT(s)...`;
+
+  for (const id of row.staked_nft) {
+    const nft = await cargarNFT(id);
+    if (!nft) continue;
+    const li = document.createElement('li');
+    li.innerHTML = `<img src="${nft.img}" alt="${nft.name}" /><p>${nft.name}</p>`;
+    nftList.appendChild(li);
+  }
+  secNFTs.style.display = 'block';
+}
+
+// NUEVO: NFTs trabajadores
+if (Array.isArray(row.staked_workers) && row.staked_workers.length) {
+  const secWorkers = document.createElement('section');
+  secWorkers.innerHTML = `<h2>🧑‍🌾 Trabajadores Equipados</h2><ul class="nft-list" id="worker-list"></ul>`;
+  document.body.appendChild(secWorkers);
+
+  const workerList = secWorkers.querySelector('#worker-list');
+
+  for (const id of row.staked_workers) {
+    const nft = await cargarNFT(id);
+    if (!nft) continue;
+    const li = document.createElement('li');
+    li.innerHTML = `<img src="${nft.img}" alt="${nft.name}" /><p>${nft.name}</p>`;
+    workerList.appendChild(li);
+  }
+}
+
       msg.textContent = `✅ Perfil cargado para ${acc}`;
 
     } catch(e) {
