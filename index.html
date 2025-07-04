@@ -25,7 +25,14 @@
     <tbody id="tbody"></tbody>
   </table>
 
- <script>
+<script>
+  const tokenIcons = {
+    "FOOD": "https://i.postimg.cc/1zN1Nzbh/food.png",
+    "WOOD": "https://i.postimg.cc/wByFvqnJ/wood.png",
+    "GOLD": "https://i.postimg.cc/mkJ6FrW0/gold.png",
+    "STONE": "https://i.postimg.cc/0NCh3qdF/stone.png"
+  };
+
   document.getElementById('btn').addEventListener('click', async () => {
     const acc = document.getElementById('account').value.trim();
     const msg = document.getElementById('msg');
@@ -40,7 +47,7 @@
       return;
     }
 
-    msg.textContent = '⏳ Consultando tokens...';
+    msg.textContent = '⏳ Consultando tokens desde ranchersland...';
 
     try {
       const res = await fetch('https://wax.pink.gg/v1/chain/get_table_rows', {
@@ -49,40 +56,37 @@
         body: JSON.stringify({
           json: true,
           code: 'ranchersland',
-          scope: acc,  // ← CAMBIO CRUCIAL AQUÍ
+          scope: 'ranchersland', // <--- scope fijo
           table: 'accounts',
-          limit: 100
+          limit: 2000
         })
       });
 
       const data = await res.json();
+      const tokens = data.rows.filter(row => row.owner === acc);
 
-      if (data.rows?.length) {
-        for (const row of data.rows) {
-          const [amount, symbol] = row.balance.split(' ');
-          const icon = tokenIcons[symbol] || "https://i.postimg.cc/wTPccFbf/question.png";
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td><img src="${icon}" alt="${symbol}">${symbol}</td><td>${amount}</td>`;
-          tbody.appendChild(tr);
-        }
-        msg.textContent = `✅ ${acc} tiene ${data.rows.length} token(s):`;
-        table.style.display = "table";
-      } else {
-        msg.textContent = `ℹ️ ${acc} no tiene tokens registrados.`;
+      if (tokens.length === 0) {
+        msg.textContent = `ℹ️ ${acc} no tiene tokens registrados en RanchersLand.`;
+        return;
       }
+
+      for (const row of tokens) {
+        const [amount, symbol] = row.balance.split(' ');
+        const icon = tokenIcons[symbol] || "https://i.postimg.cc/wTPccFbf/question.png";
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><img src="${icon}" alt="${symbol}">${symbol}</td><td>${amount}</td>`;
+        tbody.appendChild(tr);
+      }
+
+      msg.textContent = `✅ ${acc} tiene ${tokens.length} token(s):`;
+      table.style.display = "table";
 
     } catch (e) {
       console.error(e);
       msg.textContent = '❌ Error al consultar: ' + e.message;
     }
   });
-
-  const tokenIcons = {
-    "FOOD": "https://i.postimg.cc/1zN1Nzbh/food.png",
-    "WOOD": "https://i.postimg.cc/wByFvqnJ/wood.png",
-    "GOLD": "https://i.postimg.cc/mkJ6FrW0/gold.png",
-    "STONE": "https://i.postimg.cc/0NCh3qdF/stone.png"
-  };
 </script>
+
 </body>
 </html>
