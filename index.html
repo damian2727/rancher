@@ -67,15 +67,27 @@
      // NUEVO: función para cargar un NFT por ID
 async function cargarNFT(asset_id) {
   try {
-    const r = await fetch(`https://aa.wax.blacklusion.io/atomicassets/v1/assets/${asset_id}`);
-    const js = await r.json();
-    const asset = js.data;
+    const res = await fetch(`https://aa.wax.blacklusion.io/atomicassets/v1/assets/${asset_id}`);
+    const json = await res.json();
+    const asset = json.data;
+
+    // Intenta varias ubicaciones comunes de la imagen
+    const ipfsHash =
+      asset.data?.img ||
+      asset.template?.immutable_data?.img ||
+      asset.immutable_data?.img ||
+      "";
+
+    const imageURL = ipfsHash
+      ? `https://ipfs.io/ipfs/${ipfsHash}`
+      : "https://i.postimg.cc/wTPccFbf/question.png"; // Fallback
+
     return {
-      name: asset.name,
-      img: `https://ipfs.io/ipfs/${asset.data.img || asset.template.immutable_data.img}`
+      name: asset.name || "NFT",
+      img: imageURL
     };
   } catch (e) {
-    console.warn('Error cargando NFT', asset_id, e);
+    console.warn("Error al cargar NFT", asset_id, e);
     return null;
   }
 }
