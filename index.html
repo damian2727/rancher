@@ -57,9 +57,9 @@ const tokenIcons = {
       // Mostrar tokens
       row.balances?.forEach(b => {
         const [amount, sym] = b.split(' ');
-const icon = tokenIcons[sym] || 'https://via.placeholder.com/24';
-const tr = document.createElement('tr');
-tr.innerHTML = `
+       const icon = tokenIcons[sym] || 'https://via.placeholder.com/24';
+       const tr = document.createElement('tr');
+        tr.innerHTML = `
   <td>
     <img src="${icon}" alt="${sym}" height="24" style="vertical-align:middle; margin-right:6px;">
     ${sym}
