@@ -36,74 +36,37 @@
       "TOOL":  "https://i.imgur.com/6lmV2Mn.png",
       "RCOIN": "https://i.imgur.com/3nJHyoZ.png"
     };
+async function cargarNFTconStats(asset_id) {
+  try {
+    const assetRes = await fetch(`https://aa.wax.blacklusion.io/atomicassets/v1/assets/${asset_id}`);
+    const assetJson = await assetRes.json();
+    const asset = assetJson.data;
 
-    async function cargarNFTconStats(asset_id) {
-      try {
-        const assetRes = await fetch(`https://aa.wax.blacklusion.io/atomicassets/v1/assets/${asset_id}`);
-        const assetJson = await assetRes.json();
-        const asset = assetJson.data;
+    const name = asset.name || asset.data?.name || "NFT";
+    const image = asset.data?.img || asset.template?.immutable_data?.img || "";
+    const imageURL = image.startsWith("http") ? image : `https://ipfs.io/ipfs/${image}`;
 
-        const name = asset.name || asset.data?.name || "NFT";
-        const image = asset.data?.img || asset.template?.immutable_data?.img || "";
-        const imageURL = image.startsWith("http") ? image : `https://ipfs.io/ipfs/${image}`;
+    const durability = asset.template?.immutable_data?.durability ?? "N/A";
+    const stamina = asset.template?.immutable_data?.stamina ?? "N/A";
 
-        let statsJson = { rows: [] }; // 👈 Declarado una sola vez
-
-try {
-  const statsRes = await fetch("https://wax.eosrio.io/v1/chain/get_table_rows", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      json: true,
-      code: "ranchersland",
-      scope: "ranchersland",
-      table: "stakednfts",
-      lower_bound: String(asset_id),
-      upper_bound: String(asset_id),
-      limit: 1
-    })
-  });
-
-  if (statsRes.ok) {
-    statsJson = await statsRes.json();
-  } else {
-    console.warn(`⚠️ statsRes no OK para asset_id ${asset_id}:`, statsRes.status);
+    return {
+      name,
+      img: imageURL,
+      durability,
+      stamina,
+      cooldown: "No disponible"
+    };
+  } catch (e) {
+    console.warn("⚠️ Error al cargar asset ID:", asset_id, e.message);
+    return {
+      name: "NFT desconocido",
+      img: "https://via.placeholder.com/100",
+      durability: "N/A",
+      stamina: "N/A",
+      cooldown: "Error"
+    };
   }
-} catch (err) {
-  console.warn(`⚠️ Error al consultar stakednfts para ${asset_id}:`, err.message);
 }
-
-
-
-      
-        const stats = statsJson.rows?.[0];
-
-        let durability = stats?.durability ?? "N/A";
-        let stamina = stats?.stamina ?? "N/A";
-        let cooldownText = "N/A";
-
-        if (stats?.last_used && stats?.cooldown) {
-          const now = Math.floor(Date.now() / 1000);
-          const nextUse = stats.last_used + stats.cooldown;
-          const secondsLeft = nextUse - now;
-
-          cooldownText = secondsLeft > 0
-            ? `${Math.floor(secondsLeft / 60)}m ${secondsLeft % 60}s`
-            : "Listo ✅";
-        }
-
-        return { name, img: imageURL, durability, stamina, cooldown: cooldownText };
-      } catch (e) {
-        console.warn("⚠️ Error al cargar asset ID:", asset_id, e.message);
-        return {
-          name: "NFT desconocido",
-          img: "https://via.placeholder.com/100",
-          durability: "N/A",
-          stamina: "N/A",
-          cooldown: "Error"
-        };
-      }
-    }
 
     document.getElementById('btn').addEventListener('click', async () => {
       const acc = document.getElementById('account').value.trim();
