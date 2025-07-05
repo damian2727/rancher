@@ -137,7 +137,7 @@ async function cargarNFTconStats(asset_id) {
 // NFTs normales
 const lista = document.getElementById('nft-list'); // tu contenedor UL o DIV
 
-for (const id of asset_ids) {
+for (const id of row.staked_nft) {
   const nft = await cargarNFTconStats(id);
   if (!nft) continue;
 
