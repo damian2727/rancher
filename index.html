@@ -135,17 +135,21 @@ async function cargarNFTconStats(asset_id) {
 }
 
 // NFTs normales
-if (Array.isArray(row.staked_nft) && row.staked_nft.length) {
-  msg.textContent = `⏳ Cargando ${row.staked_nft.length} NFT(s)...`;
+const lista = document.getElementById('nft-list'); // tu contenedor UL o DIV
 
-  for (const id of row.staked_nft) {
-    const nft = await cargarNFT(id);
-    if (!nft) continue;
-    const li = document.createElement('li');
-    li.innerHTML = `<img src="${nft.img}" alt="${nft.name}" /><p>${nft.name}</p>`;
-    nftList.appendChild(li);
-  }
-  secNFTs.style.display = 'block';
+for (const id of asset_ids) {
+  const nft = await cargarNFTconStats(id);
+  if (!nft) continue;
+
+  const li = document.createElement("li");
+  li.innerHTML = `
+    <img src="${nft.img}" height="100" /><br>
+    <strong>${nft.name}</strong><br>
+    ⚡ Stamina: ${nft.stamina} <br>
+    🛠️ Durabilidad: ${nft.durability} <br>
+    ⏳ Cooldown: ${nft.cooldown}
+  `;
+  lista.appendChild(li);
 }
 
 // NUEVO: NFTs trabajadores
