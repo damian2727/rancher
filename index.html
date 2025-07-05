@@ -47,19 +47,32 @@
         const image = asset.data?.img || asset.template?.immutable_data?.img || "";
         const imageURL = image.startsWith("http") ? image : `https://ipfs.io/ipfs/${image}`;
 
-        const statsRes = await fetch("https://wax.eosrio.io/v1/chain/get_table_rows", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            json: true,
-            code: "ranchersland",
-            scope: "ranchersland",
-            table: "stakednfts",
-            lower_bound: String(asset_id),
-            upper_bound: String(asset_id),
-            limit: 1
-          })
-        });
+        let statsJson = { rows: [] };
+try {
+  const statsRes = await fetch("https://wax.eosrio.io/v1/chain/get_table_rows", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      json: true,
+      code: "ranchersland",
+      scope: "ranchersland",
+      table: "stakednfts",
+      lower_bound: String(asset_id),
+      upper_bound: String(asset_id),
+      limit: 1
+    })
+  });
+
+  // Si la respuesta no es OK, ignora
+  if (statsRes.ok) {
+    statsJson = await statsRes.json();
+  } else {
+    console.warn(`⚠️ statsRes no OK para asset_id ${asset_id}:`, statsRes.status);
+  }
+} catch (err) {
+  console.warn(`⚠️ statsRes error para asset_id ${asset_id}:`, err.message);
+}
+
 
         const statsJson = await statsRes.json();
         const stats = statsJson.rows?.[0];
