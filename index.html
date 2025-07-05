@@ -63,7 +63,7 @@ try {
     })
   });
 
- // Si la respuesta no es OK, ignora
+  // Si la respuesta no es OK, ignora
   if (statsRes.ok) {
     statsJson = await statsRes.json();
   } else {
@@ -72,6 +72,7 @@ try {
 } catch (err) {
   console.warn(`⚠️ statsRes error para asset_id ${asset_id}:`, err.message);
 }
+
 
         const statsJson = await statsRes.json();
         const stats = statsJson.rows?.[0];
