@@ -47,7 +47,8 @@
         const image = asset.data?.img || asset.template?.immutable_data?.img || "";
         const imageURL = image.startsWith("http") ? image : `https://ipfs.io/ipfs/${image}`;
 
-        let statsJson = { rows: [] };
+        let statsJson = { rows: [] }; // 👈 Declarado una sola vez
+
 try {
   const statsRes = await fetch("https://wax.eosrio.io/v1/chain/get_table_rows", {
     method: "POST",
@@ -63,15 +64,15 @@ try {
     })
   });
 
-  // Si la respuesta no es OK, ignora
   if (statsRes.ok) {
     statsJson = await statsRes.json();
   } else {
     console.warn(`⚠️ statsRes no OK para asset_id ${asset_id}:`, statsRes.status);
   }
 } catch (err) {
-  console.warn(`⚠️ statsRes error para asset_id ${asset_id}:`, err.message);
+  console.warn(`⚠️ Error al consultar stakednfts para ${asset_id}:`, err.message);
 }
+
 
 
         const statsJson = await statsRes.json();
