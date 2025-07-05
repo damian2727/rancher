@@ -1,181 +1,173 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Perfil RanchersLand con NFTs</title>
+  <title>Estado RanchersLand</title>
   <style>
-    /* Mantengo estilos previos */
-    body { font-family:sans-serif; max-width:800px; margin:auto; padding:2rem; background:#f4f4f4; }
-    input, button { padding:0.5rem; font-size:1rem; }
-    section { background:#fff; padding:1rem; margin-top:1rem; border-radius:8px; }
-    ul.nft-list { list-style:none; padding:0; display:grid; grid-template-columns:repeat(auto-fill,128px); gap:1rem; }
-    ul.nft-list li { text-align:center; }
-    ul.nft-list img { width:100%; border-radius:4px; }
+    body { font-family: sans-serif; padding: 20px; }
+    input { padding: 5px; }
+    img { border-radius: 8px; }
+    ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 15px; }
+    li { border: 1px solid #ccc; padding: 10px; border-radius: 10px; width: 200px; background: #f9f9f9; }
   </style>
 </head>
 <body>
-  <h1>Perfil RanchersLand / WAX</h1>
-  <input id="account" placeholder="ej: tzgru.wam" /><button id="btn">Consultar Perfil</button>
-  <div id="msg">Ingresa tu cuenta .wam y presiona Consultar</div>
-  <section id="tokens" style="display:none">
-    <h2>💰 Tokens</h2><table><thead><tr><th>Token</th><th>Saldo</th></tr></thead><tbody id="tbody-tokens"></tbody></table>
-  </section>
-  <section id="nfts" style="display:none">
-    <h2>🔗 NFTs Equipados</h2><ul id="nft-list" class="nft-list"></ul>
-  </section>
-<script>
-const tokenIcons = {
-  "RANCH": "https://www.ranchers.land/static/media/ranch.d89c51bf593265f57ca1.webp",
-  "FARM":  "https://www.ranchers.land/static/media/farm.4628abcbb54460b2ea97.webp",
-  "TOOL":  "https://www.ranchers.land/static/media/tool.241244bca67c84c01d56.webp",
-  "RCOIN": "https://www.ranchers.land/static/media/rcoin.792f3b6432cf2bfa808d.webp"
-};
 
-  document.getElementById('btn').addEventListener('click', async () => {
-    const acc = document.getElementById('account').value.trim();
-    const msg = document.getElementById('msg');
-    const secTokens = document.getElementById('tokens');
-    const secNFTs = document.getElementById('nfts');
-    const tbody = document.getElementById('tbody-tokens');
-    const nftList = document.getElementById('nft-list');
+  <h2>Consultar cuenta de RanchersLand</h2>
+  <input id="account" placeholder="ej: tzgru.wam" />
+  <button id="btn">Consultar</button>
 
-    secTokens.style.display = secNFTs.style.display = "none";
-    tbody.innerHTML = nftList.innerHTML = "";
-    if (!/^[a-z1-5.]{1,12}\.wam$/.test(acc)) { msg.textContent = "❌ Cuenta inválida"; return; }
-    msg.textContent = "⏳ Consultando perfil...";
+  <h3>Tokens:</h3>
+  <table border="1" cellpadding="5" id="token-table">
+    <thead><tr><th>Token</th><th>Cantidad</th></tr></thead>
+    <tbody></tbody>
+  </table>
 
-    try {
-      let res = await fetch('https://wax.pink.gg/v1/chain/get_table_rows', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({json:true, code:'ranchersland', scope:'ranchersland', table:'accounts', limit:5000})
-      });
-      const data = await res.json();
-      const row = data.rows.find(r => r.account === acc);
-      if (!row) return msg.textContent = "❌ Perfil no encontrado.";
+  <h3>NFTs Equipados:</h3>
+  <ul id="nft-list"></ul>
 
-      // Mostrar tokens
-      row.balances?.forEach(b => {
-  const [amount, sym] = b.split(' ');
-  const icon = tokenIcons[sym] || 'https://via.placeholder.com/24?text=?';
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>
-      <img src="${icon}" alt="${sym}" height="24" style="vertical-align:middle; margin-right:6px;">
-      ${sym}
-    </td>
-    <td>${amount}</td>
-  `;
-  tbody.appendChild(tr);
-});
+  <h3>Trabajadores Equipados:</h3>
+  <ul id="worker-list"></ul>
 
-      secTokens.style.display = row.balances.length? 'block':'none';
+  <script>
+    const tokenIcons = {
+      "RANCH": "https://i.imgur.com/MtSLfUk.png",
+      "FARM":  "https://i.imgur.com/sx0JMuE.png",
+      "TOOL":  "https://i.imgur.com/6lmV2Mn.png",
+      "RCOIN": "https://i.imgur.com/3nJHyoZ.png"
+    };
 
-      // Mostrar NFTs equipados
-     // NUEVO: función para cargar un NFT por ID
-async function cargarNFTconStats(asset_id) {
-  try {
-    // 🔹 Obtener datos del NFT desde AtomicAssets
-    const assetRes = await fetch(`https://aa.wax.blacklusion.io/atomicassets/v1/assets/${asset_id}`);
-    const assetJson = await assetRes.json();
-    const asset = assetJson.data;
+    async function cargarNFTconStats(asset_id) {
+      try {
+        const assetRes = await fetch(`https://aa.wax.blacklusion.io/atomicassets/v1/assets/${asset_id}`);
+        const assetJson = await assetRes.json();
+        const asset = assetJson.data;
 
-    const name = asset.name || asset.data?.name || "NFT";
-    const image = asset.data?.img || asset.template?.immutable_data?.img || "";
-    const imageURL = image.startsWith("http") ? image : `https://ipfs.io/ipfs/${image}`;
+        const name = asset.name || asset.data?.name || "NFT";
+        const image = asset.data?.img || asset.template?.immutable_data?.img || "";
+        const imageURL = image.startsWith("http") ? image : `https://ipfs.io/ipfs/${image}`;
 
-    // 🔹 Intentar obtener stats dinámicos del contrato ranchersland
-    const statsRes = await fetch("https://wax.pink.gg/v1/chain/get_table_rows", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-  json: true,
-  code: "ranchersland",
-  scope: "ranchersland", // muy importante
-  table: "stakednfts",
-  lower_bound: String(asset_id),
-  upper_bound: String(asset_id),
-  limit: 1
-})
-    });
+        const statsRes = await fetch("https://wax.greymass.com/v1/chain/get_table_rows", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            json: true,
+            code: "ranchersland",
+            scope: "ranchersland",
+            table: "stakednfts",
+            lower_bound: String(asset_id),
+            upper_bound: String(asset_id),
+            limit: 1
+          })
+        });
 
-    const statsJson = await statsRes.json();
-    const stats = statsJson.rows?.[0];
+        const statsJson = await statsRes.json();
+        const stats = statsJson.rows?.[0];
 
-    let durability = stats?.durability ?? "N/A";
-    let stamina = stats?.stamina ?? "N/A";
-    let cooldownText = "N/A";
+        let durability = stats?.durability ?? "N/A";
+        let stamina = stats?.stamina ?? "N/A";
+        let cooldownText = "N/A";
 
-    // 🔹 Calcular tiempo restante si hay cooldown
-    if (stats?.last_used && stats?.cooldown) {
-      const now = Math.floor(Date.now() / 1000);
-      const nextUse = stats.last_used + stats.cooldown;
-      const secondsLeft = nextUse - now;
+        if (stats?.last_used && stats?.cooldown) {
+          const now = Math.floor(Date.now() / 1000);
+          const nextUse = stats.last_used + stats.cooldown;
+          const secondsLeft = nextUse - now;
 
-      if (secondsLeft > 0) {
-        const mins = Math.floor(secondsLeft / 60);
-        const secs = secondsLeft % 60;
-        cooldownText = `${mins}m ${secs}s`;
-      } else {
-        cooldownText = "Listo ✅";
+          cooldownText = secondsLeft > 0
+            ? `${Math.floor(secondsLeft / 60)}m ${secondsLeft % 60}s`
+            : "Listo ✅";
+        }
+
+        return { name, img: imageURL, durability, stamina, cooldown: cooldownText };
+      } catch (e) {
+        console.warn("Error cargando NFT con stats", asset_id, e);
+        return null;
       }
     }
 
-    // 🔹 Devolver estructura completa
-    return {
-      name,
-      img: imageURL,
-      durability,
-      stamina,
-      cooldown: cooldownText
-    };
-  } catch (e) {
-    console.warn("Error cargando NFT con stats", asset_id, e);
-    return null;
-  }
-}
+    document.getElementById('btn').addEventListener('click', async () => {
+      const acc = document.getElementById('account').value.trim();
+      const tokenTable = document.querySelector('#token-table tbody');
+      const nftList = document.getElementById('nft-list');
+      const workerList = document.getElementById('worker-list');
 
-// NFTs normales
-const lista = document.getElementById('nft-list');
+      if (!acc.endsWith('.wam')) {
+        alert("Cuenta inválida. Debe terminar en .wam");
+        return;
+      }
 
-for (const id of row.staked_nft) {
-  const nft = await cargarNFTconStats(id);
-  if (!nft) continue;
+      tokenTable.innerHTML = '';
+      nftList.innerHTML = '';
+      workerList.innerHTML = '';
 
-  const li = document.createElement("li");
-  li.innerHTML = `
-    <img src="${nft.img}" height="100" /><br>
-    <strong>${nft.name}</strong><br>
-    ⚡ Stamina: ${nft.stamina} <br>
-    🛠️ Durabilidad: ${nft.durability} <br>
-    ⏳ Cooldown: ${nft.cooldown}
-  `;
-  lista.appendChild(li);
-}
+      try {
+        const res = await fetch("https://wax.greymass.com/v1/chain/get_table_rows", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            json: true,
+            code: "ranchersland",
+            scope: acc,
+            table: "accounts",
+            limit: 1
+          })
+        });
 
-// NUEVO: NFTs trabajadores
-if (Array.isArray(row.staked_workers) && row.staked_workers.length) {
-  const secWorkers = document.createElement('section');
-  secWorkers.innerHTML = `<h2>🧑‍🌾 Trabajadores Equipados</h2><ul class="nft-list" id="worker-list"></ul>`;
-  document.body.appendChild(secWorkers);
+        const data = await res.json();
+        const row = data.rows?.[0];
 
-  const workerList = secWorkers.querySelector('#worker-list');
+        if (!row) {
+          alert("La cuenta no tiene tokens registrados en RanchersLand.");
+          return;
+        }
 
-  for (const id of row.staked_workers) {
-    const nft = await cargarNFT(id);
-    if (!nft) continue;
-    const li = document.createElement('li');
-    li.innerHTML = `<img src="${nft.img}" alt="${nft.name}" /><p>${nft.name}</p>`;
-    workerList.appendChild(li);
-  }
-}
+        // Mostrar tokens
+        row.balances?.forEach(b => {
+          const [amount, sym] = b.split(' ');
+          const icon = tokenIcons[sym] || 'https://via.placeholder.com/24?text=?';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><img src="${icon}" height="24" style="vertical-align:middle; margin-right:6px;"> ${sym}</td>
+            <td>${amount}</td>
+          `;
+          tokenTable.appendChild(tr);
+        });
 
-      msg.textContent = `✅ Perfil cargado para ${acc}`;
+        // Mostrar staked_nft
+        for (const id of row.staked_nft || []) {
+          const nft = await cargarNFTconStats(id);
+          if (!nft) continue;
 
-    } catch(e) {
-      console.error(e);
-      msg.textContent = `❌ Error: ${e.message}`;
-    }
-  });
-</script>
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <img src="${nft.img}" height="100"><br>
+            <strong>${nft.name}</strong><br>
+            ⚡ ${nft.stamina} | 🛠️ ${nft.durability}<br>
+            ⏳ ${nft.cooldown}
+          `;
+          nftList.appendChild(li);
+        }
+
+        // Mostrar staked_workers
+        for (const id of row.staked_workers || []) {
+          const nft = await cargarNFTconStats(id);
+          if (!nft) continue;
+
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <img src="${nft.img}" height="100"><br>
+            <strong>${nft.name}</strong><br>
+            ⚡ ${nft.stamina} | 🛠️ ${nft.durability}<br>
+            ⏳ ${nft.cooldown}
+          `;
+          workerList.appendChild(li);
+        }
+
+      } catch (e) {
+        console.error(e);
+        alert("Error al consultar. Intenta nuevamente.");
+      }
+    });
+  </script>
 </body>
 </html>
