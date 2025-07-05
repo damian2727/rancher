@@ -102,6 +102,15 @@ async function cargarNFTconStats(asset_id) {
         const data = await res.json();
         const row = data.rows?.[0];
 
+        // Mostrar stamina
+const staminaText = document.getElementById("stamina-text");
+if (row.stamina) {
+  staminaText.textContent = `⚡ ${row.stamina.first} / ${row.stamina.second}`;
+} else {
+  staminaText.textContent = "No disponible";
+}
+
+
         if (!row) {
           alert("La cuenta no tiene tokens registrados en RanchersLand.");
           return;
