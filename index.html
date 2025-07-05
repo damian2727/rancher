@@ -84,7 +84,7 @@ async function cargarNFTconStats(asset_id) {
     const imageURL = image.startsWith("http") ? image : `https://ipfs.io/ipfs/${image}`;
 
     // 🔹 Intentar obtener stats dinámicos del contrato ranchersland
-    const statsRes = await fetch("https://wax.greymass.com/v1/chain/get_table_rows", {
+    const statsRes = await fetch("https://wax.pink.gg/v1/chain/get_table_rows", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
