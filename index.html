@@ -88,14 +88,14 @@ async function cargarNFTconStats(asset_id) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        json: true,
-        code: "ranchersland",
-        scope: "ranchersland",
-        table: "stakednfts",
-        lower_bound: asset_id,
-        upper_bound: asset_id,
-        limit: 1
-      })
+  json: true,
+  code: "ranchersland",
+  scope: "ranchersland", // muy importante
+  table: "stakednfts",
+  lower_bound: String(asset_id),
+  upper_bound: String(asset_id),
+  limit: 1
+})
     });
 
     const statsJson = await statsRes.json();
