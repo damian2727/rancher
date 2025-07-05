@@ -72,22 +72,64 @@ const tokenIcons = {
 
       // Mostrar NFTs equipados
      // NUEVO: función para cargar un NFT por ID
-async function cargarNFT(asset_id) {
+async function cargarNFTconStats(asset_id) {
   try {
-    const res = await fetch(`https://aa.wax.blacklusion.io/atomicassets/v1/assets/${asset_id}`);
-    const json = await res.json();
-    const asset = json.data;
+    // 🔹 Obtener datos del NFT desde AtomicAssets
+    const assetRes = await fetch(`https://aa.wax.blacklusion.io/atomicassets/v1/assets/${asset_id}`);
+    const assetJson = await assetRes.json();
+    const asset = assetJson.data;
 
     const name = asset.name || asset.data?.name || "NFT";
     const image = asset.data?.img || asset.template?.immutable_data?.img || "";
+    const imageURL = image.startsWith("http") ? image : `https://ipfs.io/ipfs/${image}`;
 
-    // En este caso la imagen ya es URL completa (no es solo un hash)
+    // 🔹 Intentar obtener stats dinámicos del contrato ranchersland
+    const statsRes = await fetch("https://wax.greymass.com/v1/chain/get_table_rows", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        json: true,
+        code: "ranchersland",
+        scope: "ranchersland",
+        table: "stakednfts",
+        lower_bound: asset_id,
+        upper_bound: asset_id,
+        limit: 1
+      })
+    });
+
+    const statsJson = await statsRes.json();
+    const stats = statsJson.rows?.[0];
+
+    let durability = stats?.durability ?? "N/A";
+    let stamina = stats?.stamina ?? "N/A";
+    let cooldownText = "N/A";
+
+    // 🔹 Calcular tiempo restante si hay cooldown
+    if (stats?.last_used && stats?.cooldown) {
+      const now = Math.floor(Date.now() / 1000);
+      const nextUse = stats.last_used + stats.cooldown;
+      const secondsLeft = nextUse - now;
+
+      if (secondsLeft > 0) {
+        const mins = Math.floor(secondsLeft / 60);
+        const secs = secondsLeft % 60;
+        cooldownText = `${mins}m ${secs}s`;
+      } else {
+        cooldownText = "Listo ✅";
+      }
+    }
+
+    // 🔹 Devolver estructura completa
     return {
-      name: name,
-      img: image || "https://i.postimg.cc/wTPccFbf/question.png"
+      name,
+      img: imageURL,
+      durability,
+      stamina,
+      cooldown: cooldownText
     };
   } catch (e) {
-    console.warn("Error al cargar NFT", asset_id, e);
+    console.warn("Error cargando NFT con stats", asset_id, e);
     return null;
   }
 }
