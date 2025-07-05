@@ -47,7 +47,7 @@
         const image = asset.data?.img || asset.template?.immutable_data?.img || "";
         const imageURL = image.startsWith("http") ? image : `https://ipfs.io/ipfs/${image}`;
 
-        const statsRes = await fetch("https://wax.greymass.com/v1/chain/get_table_rows", {
+        const statsRes = await fetch("https://wax.eosrio.io/v1/chain/get_table_rows", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -101,7 +101,7 @@
       workerList.innerHTML = '';
 
       try {
-        const res = await fetch("https://wax.greymass.com/v1/chain/get_table_rows", {
+        const res = await fetch("https://wax.eosrio.io/v1/chain/get_table_rows", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
