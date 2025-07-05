@@ -38,38 +38,37 @@
       "RCOIN": "https://i.imgur.com/3nJHyoZ.png"
     };
 async function cargarNFTconStats(asset_id) {
- let cooldownText = "N/A";
+  try {
+    const assetRes = await fetch(`https://aa.wax.blacklusion.io/atomicassets/v1/assets/${asset_id}`);
+    const assetJson = await assetRes.json();
+    const asset = assetJson.data;
 
-try {
-  const resStats = await fetch("https://wax.eosrio.io/v1/chain/get_table_rows", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      json: true,
-      code: "ranchersland",
-      scope: "ranchersland",
-      table: "stakednfts",
-      lower_bound: String(asset_id),
-      upper_bound: String(asset_id),
-      limit: 1
-    })
-  });
+    const name = asset.name || asset.data?.name || "NFT";
+    const image = asset.data?.img || asset.template?.immutable_data?.img || "";
+    const imageURL = image.startsWith("http") ? image : `https://ipfs.io/ipfs/${image}`;
 
-  if (resStats.ok) {
-    const statsJson = await resStats.json();
-    if (statsJson.rows?.length) {
-      const nextUse = statsJson.rows[0].next_use;
-      if (nextUse) {
-        cooldownText = calcularTiempoRestante(nextUse);
-      }
-    }
-  } else {
-    console.warn(`⚠️ statsRes no OK para asset_id ${asset_id}:`, resStats.status);
+    const durability = asset.template?.immutable_data?.durability ?? "N/A";
+    const stamina = asset.template?.immutable_data?.stamina ?? "N/A";
+
+    return {
+      name,
+      img: imageURL,
+      durability,
+      stamina,
+      cooldown: "No disponible"
+    };
+  } catch (e) {
+    console.warn("⚠️ Error al cargar asset ID:", asset_id, e.message);
+    return {
+      name: "NFT desconocido",
+      img: "https://via.placeholder.com/100",
+      durability: "N/A",
+      stamina: "N/A",
+      cooldown: "Error"
+    };
   }
-} catch (err) {
-  console.warn(`⚠️ Error al consultar cooldown de asset_id ${asset_id}:`, err.message);
 }
-}
+
 
 function calcularTiempoRestante(nextUseTimestamp) {
   const ahora = Math.floor(Date.now() / 1000);
