@@ -80,8 +80,14 @@
 
         return { name, img: imageURL, durability, stamina, cooldown: cooldownText };
       } catch (e) {
-        console.warn("Error cargando NFT con stats", asset_id, e);
-        return null;
+        console.warn("⚠️ Error al cargar asset ID:", asset_id, e.message);
+        return {
+          name: "NFT desconocido",
+          img: "https://via.placeholder.com/100",
+          durability: "N/A",
+          stamina: "N/A",
+          cooldown: "Error"
+        };
       }
     }
 
@@ -105,14 +111,14 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-  json: true,
-  code: "ranchersland",
-  scope: "ranchersland",
-  table: "accounts",
-  lower_bound: acc,
-  upper_bound: acc,
-  limit: 1
-  })
+            json: true,
+            code: "ranchersland",
+            scope: "ranchersland",
+            table: "accounts",
+            lower_bound: acc,
+            upper_bound: acc,
+            limit: 1
+          })
         });
 
         const data = await res.json();
@@ -166,7 +172,7 @@
         }
 
       } catch (e) {
-        console.error(e);
+        console.error("❌ Error en consulta general", e.message);
         alert("Error al consultar. Intenta nuevamente.");
       }
     });
