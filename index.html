@@ -38,7 +38,10 @@
       "RCOIN": "https://i.imgur.com/3nJHyoZ.png"
     };
 async function cargarNFTconStats(asset_id) {
+  let cooldownText = "Desconocido";
+
   try {
+    // Paso 1: Datos del NFT desde AtomicAssets
     const assetRes = await fetch(`https://aa.wax.blacklusion.io/atomicassets/v1/assets/${asset_id}`);
     const assetJson = await assetRes.json();
     const asset = assetJson.data;
@@ -48,14 +51,43 @@ async function cargarNFTconStats(asset_id) {
     const imageURL = image.startsWith("http") ? image : `https://ipfs.io/ipfs/${image}`;
 
     const durability = asset.template?.immutable_data?.durability ?? "N/A";
-    
+    const stamina = asset.template?.immutable_data?.stamina ?? "N/A";
+
+    // Paso 2: Intentar obtener cooldown desde stakednfts (opcional)
+    try {
+      const resStats = await fetch("https://wax.eosrio.io/v1/chain/get_table_rows", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          json: true,
+          code: "ranchersland",
+          scope: "ranchersland",
+          table: "stakednfts",
+          lower_bound: String(asset_id),
+          upper_bound: String(asset_id),
+          limit: 1
+        })
+      });
+
+      if (resStats.ok) {
+        const statsJson = await resStats.json();
+        if (statsJson.rows.length > 0) {
+          const nextUse = statsJson.rows[0].next_use;
+          if (nextUse) {
+            cooldownText = calcularTiempoRestante(nextUse);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("No se pudo obtener cooldown:", e.message);
+    }
 
     return {
       name,
       img: imageURL,
       durability,
-    
-      cooldown: "No disponible"
+      
+      cooldown: cooldownText
     };
   } catch (e) {
     console.warn("⚠️ Error al cargar asset ID:", asset_id, e.message);
@@ -63,12 +95,23 @@ async function cargarNFTconStats(asset_id) {
       name: "NFT desconocido",
       img: "https://via.placeholder.com/100",
       durability: "N/A",
-     
+      
       cooldown: "Error"
     };
   }
 }
 
+function calcularTiempoRestante(nextUseTimestamp) {
+  const ahora = Math.floor(Date.now() / 1000);
+  const restante = nextUseTimestamp - ahora;
+
+  if (restante <= 0) return "Disponible";
+
+  const minutos = Math.floor(restante / 60);
+  const segundos = restante % 60;
+
+  return `${minutos}m ${segundos}s`;
+}
     document.getElementById('btn').addEventListener('click', async () => {
       const acc = document.getElementById('account').value.trim();
       const tokenTable = document.querySelector('#token-table tbody');
