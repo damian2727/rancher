@@ -47,13 +47,13 @@ async function cargarNFTconStats(asset_id) {
     const imageURL = image.startsWith("http") ? image : `https://ipfs.io/ipfs/${image}`;
 
     const durability = asset.template?.immutable_data?.durability ?? "N/A";
-    const stamina = asset.template?.immutable_data?.stamina ?? "N/A";
+    
 
     return {
       name,
       img: imageURL,
       durability,
-      stamina,
+    
       cooldown: "No disponible"
     };
   } catch (e) {
@@ -62,7 +62,7 @@ async function cargarNFTconStats(asset_id) {
       name: "NFT desconocido",
       img: "https://via.placeholder.com/100",
       durability: "N/A",
-      stamina: "N/A",
+     
       cooldown: "Error"
     };
   }
@@ -127,7 +127,7 @@ async function cargarNFTconStats(asset_id) {
           li.innerHTML = `
             <img src="${nft.img}" height="100"><br>
             <strong>${nft.name}</strong><br>
-            ⚡ ${nft.stamina} | 🛠️ ${nft.durability}<br>
+            🛠️ ${nft.durability}<br>
             ⏳ ${nft.cooldown}
           `;
           nftList.appendChild(li);
@@ -142,7 +142,7 @@ async function cargarNFTconStats(asset_id) {
           li.innerHTML = `
             <img src="${nft.img}" height="100"><br>
             <strong>${nft.name}</strong><br>
-            ⚡ ${nft.stamina} | 🛠️ ${nft.durability}<br>
+            
             ⏳ ${nft.cooldown}
           `;
           workerList.appendChild(li);
